@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Notes Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&family=Caveat:wght@600;700&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <span class="brand-mark">📖</span>
+            <div>
+                <h1>Study Notes Generator</h1>
+                <p class="tagline">Turn any topic into notes you'll actually want to read.</p>
+            </div>
+        </div>
+        <button id="font-toggle" class="ghost-btn" type="button" title="Switch font">
+            Aa · Easy read
+        </button>
+    </header>
+
+    <main class="layout">
+        <!-- Left: generate + notes -->
+        <section class="notes-column">
+            <form id="topic-form" class="topic-form">
+                <label for="topic">What do you want to study?</label>
+                <div class="topic-row">
+                    <input
+                        id="topic"
+                        name="topic"
+                        type="text"
+                        placeholder="e.g. Photosynthesis, TCP handshake, French Revolution…"
+                        autocomplete="off"
+                        required
+                    />
+                    <button type="submit" class="primary-btn">Make my notes</button>
+                </div>
+                <p id="form-error" class="form-error" hidden></p>
+            </form>
+
+            <section id="history-panel" class="history-panel">
+                <h2 class="history-title">Recent notes</h2>
+                <ul id="history-list" class="history-list">
+                    <li class="history-empty">No notes yet.</li>
+                </ul>
+            </section>
+
+            <section id="progress-panel" class="progress-panel" hidden>
+                <div class="progress-head">
+                    <span id="progress-message">Getting ready…</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+                <ol id="stage-list" class="stage-list"></ol>
+            </section>
+
+            <article id="notes-card" class="notes-card paper" hidden>
+                <div class="notes-toolbar no-print">
+                    <span class="notes-title" id="notes-topic"></span>
+                    <div class="notes-actions">
+                        <button id="download-pdf" class="ghost-btn" type="button">⬇ PDF</button>
+                        <a id="download-docx" class="ghost-btn" href="#">⬇ Word</a>
+                    </div>
+                </div>
+                <div class="level-switch no-print" id="level-switch">
+                    <span class="level-label">Level:</span>
+                    <button class="level-btn" type="button" data-level="easy">Easy</button>
+                    <button class="level-btn" type="button" data-level="medium">Medium</button>
+                    <button class="level-btn" type="button" data-level="high">In-depth</button>
+                    <span class="level-status" id="level-status" hidden>Rewriting…</span>
+                </div>
+                <div id="notes-content" class="notes-content"></div>
+            </article>
+        </section>
+
+        <!-- Right: sticky notepad -->
+        <aside class="sticky-column no-print">
+            <div class="sticky-head">
+                <h2>My Notepad</h2>
+                <p class="sticky-sub">Your notes for the topic you're viewing.</p>
+            </div>
+            <form id="sticky-form" class="sticky-form">
+                <textarea id="sticky-input" placeholder="Jot something down…" rows="2"></textarea>
+                <div class="sticky-form-row">
+                    <div class="color-picker" id="color-picker">
+                        <button type="button" class="swatch yellow is-active" data-color="yellow" aria-label="yellow"></button>
+                        <button type="button" class="swatch pink" data-color="pink" aria-label="pink"></button>
+                        <button type="button" class="swatch green" data-color="green" aria-label="green"></button>
+                        <button type="button" class="swatch blue" data-color="blue" aria-label="blue"></button>
+                    </div>
+                    <button type="submit" class="primary-btn small">Add note</button>
+                </div>
+            </form>
+            <div id="sticky-list" class="sticky-list"></div>
+        </aside>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

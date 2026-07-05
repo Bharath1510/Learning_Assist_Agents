@@ -1,0 +1,9 @@
+crewai[google-genai]
+crewai-tools
+python-dotenv
+starlette
+uvicorn
+markdown-it-py
+python-docx
+Jinja2
+pymongo

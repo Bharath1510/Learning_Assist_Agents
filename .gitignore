@@ -1,0 +1,22 @@
+# Secrets — never commit real keys (.env.example is the safe template)
+.env
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache / build
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Generated reports (markdown + Word output)
+reports/
+research_report.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
