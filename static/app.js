@@ -15,6 +15,8 @@ const notesTopic = document.getElementById("notes-topic");
 const notesContent = document.getElementById("notes-content");
 const downloadDocx = document.getElementById("download-docx");
 const downloadPdf = document.getElementById("download-pdf");
+const readAloudBtn = document.getElementById("read-aloud");
+const readStopBtn = document.getElementById("read-stop");
 
 let pollTimer = null;
 let currentJobId = null;
@@ -35,6 +37,8 @@ form.addEventListener("submit", async (event) => {
     }
 
     setFormBusy(true);
+    stopSpeech();
+    readAloudBtn.hidden = true;
     notesCard.hidden = true;
     progressPanel.hidden = false;
     updateProgress({ message: "Queued. Your study crew is getting ready.", progress: 5, stages: [] });
@@ -103,6 +107,7 @@ function updateProgress(data) {
 }
 
 function showNotes(data) {
+    stopSpeech(); // never let a previous note keep reading
     currentJobId = data.id;
     notesTopic.textContent = data.topic || "";
     notesContent.innerHTML = data.html || "<p>No notes were produced.</p>";
@@ -113,6 +118,7 @@ function showNotes(data) {
         downloadDocx.hidden = true;
     }
     markActiveLevel(data.level || "medium");
+    if (synth) readAloudBtn.hidden = false;
     loadStickies();
     notesCard.hidden = false;
     notesCard.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -151,6 +157,74 @@ levelButtons.forEach((btn) => {
 });
 
 downloadPdf.addEventListener("click", () => window.print());
+
+// ---- Read aloud (browser Web Speech API — free, offline, no server) ----
+const synth = "speechSynthesis" in window ? window.speechSynthesis : null;
+let speaking = false;
+let paused = false;
+
+function updateSpeechButtons() {
+    if (!synth) return;
+    if (!speaking) {
+        readAloudBtn.textContent = "🔊 Read aloud";
+        readAloudBtn.setAttribute("aria-pressed", "false");
+        readStopBtn.hidden = true;
+    } else {
+        readAloudBtn.textContent = paused ? "▶ Resume" : "⏸ Pause";
+        readAloudBtn.setAttribute("aria-pressed", "true");
+        readStopBtn.hidden = false;
+    }
+}
+
+function stopSpeech() {
+    if (!synth) return;
+    synth.cancel();
+    speaking = false;
+    paused = false;
+    updateSpeechButtons();
+}
+
+function startSpeech() {
+    if (!synth) return;
+    synth.cancel();
+    const text = notesContent.innerText.trim();
+    if (!text) return;
+
+    // Speak sentence-by-sentence: long single utterances get cut off in some browsers.
+    const chunks = text.match(/[^.!?\n]+[.!?]*/g) || [text];
+    chunks.forEach((chunk, i) => {
+        const piece = chunk.trim();
+        if (!piece) return;
+        const utter = new SpeechSynthesisUtterance(piece);
+        if (i === chunks.length - 1) {
+            utter.onend = () => {
+                if (!paused) stopSpeech();
+            };
+        }
+        synth.speak(utter);
+    });
+    speaking = true;
+    paused = false;
+    updateSpeechButtons();
+}
+
+if (synth) {
+    readAloudBtn.addEventListener("click", () => {
+        if (!speaking) {
+            startSpeech();
+        } else if (paused) {
+            synth.resume();
+            paused = false;
+            updateSpeechButtons();
+        } else {
+            synth.pause();
+            paused = true;
+            updateSpeechButtons();
+        }
+    });
+    readStopBtn.addEventListener("click", stopSpeech);
+    window.addEventListener("beforeunload", () => synth.cancel());
+}
 
 function showFormError(message) {
     formError.textContent = message;
@@ -213,6 +287,8 @@ async function deleteReport(jobId, topic) {
     const res = await fetch(`/api/reports/${jobId}`, { method: "DELETE" });
     if (res.ok) {
         if (currentJobId === jobId) {
+            stopSpeech();
+            readAloudBtn.hidden = true;
             notesCard.hidden = true;
             currentJobId = null;
             loadStickies(); // re-gates the notepad now that no note is open

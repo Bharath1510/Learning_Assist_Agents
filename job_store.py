@@ -17,7 +17,7 @@ DEFAULT_STAGE_DEFS = [
     ("queued", "Queued"),
     ("research", "Research"),
     ("writing", "Writing"),
-    ("export", "Word export"),
+    ("export", "Finalize"),
     ("complete", "Complete"),
 ]
 

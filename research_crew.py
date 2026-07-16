@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 
 from crewai import Agent, Crew, LLM, Process, Task
 from crewai_tools import SerperDevTool
@@ -21,7 +20,12 @@ def _require_api_keys():
     return gemini_api_key
 
 
-def build_research_crew(output_file="research_report.md"):
+def _result_markdown(result):
+    """Pull the final markdown string out of a CrewAI result."""
+    return getattr(result, "raw", None) or str(result)
+
+
+def build_research_crew():
     gemini_api_key = _require_api_keys()
 
     search_tool = SerperDevTool()
@@ -84,7 +88,6 @@ def build_research_crew(output_file="research_report.md"):
         ),
         expected_output="Clean, well-structured markdown study notes a student can revise from.",
         agent=writer,
-        output_file=str(output_file),
     )
 
     return Crew(
@@ -111,11 +114,9 @@ LEVEL_GUIDANCE = {
 }
 
 
-def relevel_notes(topic, source_markdown, level, output_file="notes.md"):
+def relevel_notes(topic, source_markdown, level):
     """Rewrite existing notes at a difficulty level. No web search — cheap, single LLM pass."""
     gemini_api_key = _require_api_keys()
-    output_path = Path(output_file)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     gemini_llm = LLM(model="gemini/gemini-2.5-flash", api_key=gemini_api_key)
     guidance = LEVEL_GUIDANCE.get(level, LEVEL_GUIDANCE["medium"])
@@ -143,30 +144,19 @@ def relevel_notes(topic, source_markdown, level, output_file="notes.md"):
         ),
         expected_output="Rewritten markdown study notes at the requested level.",
         agent=adapter,
-        output_file=str(output_path),
     )
 
     crew = Crew(agents=[adapter], tasks=[adapt_task], process=Process.sequential)
     result = crew.kickoff(
         inputs={"topic": topic, "source_notes": source_markdown, "level_guidance": guidance}
     )
-
-    if output_path.exists():
-        return output_path.read_text(encoding="utf-8")
-    return str(result)
+    return _result_markdown(result)
 
 
-def run_research(topic, output_file="research_report.md"):
-    output_path = Path(output_file)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    crew = build_research_crew(output_file=output_path)
+def run_research(topic):
+    crew = build_research_crew()
     result = crew.kickoff(inputs={"topic": topic})
-
-    if output_path.exists():
-        return output_path.read_text(encoding="utf-8")
-
-    return str(result)
+    return _result_markdown(result)
 
 
 if __name__ == "__main__":

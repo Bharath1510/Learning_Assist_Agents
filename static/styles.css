@@ -119,6 +119,12 @@ body {
     border-color: var(--accent);
     color: var(--accent-dark);
 }
+/* Read-aloud button while speaking/paused */
+.ghost-btn[aria-pressed="true"] {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
 
 /* Topic form */
 .topic-form {
